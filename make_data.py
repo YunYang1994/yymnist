@@ -16,6 +16,11 @@ import cv2
 import numpy as np
 import shutil
 import random
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--num", type=int, default=2000)
+flags = parser.parse_args()
 
 if os.path.exists("./Images/"): shutil.rmtree("./Images/")
 if os.path.exists("./Annotations"): shutil.rmtree("./Annotations/")
@@ -74,8 +79,8 @@ def make_image(data, image_path, ratio=1):
     return blank
 
 with open("Annotations/label.txt", "w") as wf:
-    for i in range(2000):
-        image_path = os.path.join(os.path.realpath("."), "./Images/%05d.jpg" %i)
+    for i in range(flags.num):
+        image_path = os.path.join(os.path.realpath("."), "./Images/%06d.jpg" %i)
         annotation = image_path
         blanks = np.ones(shape=[416, 416, 3]) * 255
         bboxes = [[0,0,1,1]]
