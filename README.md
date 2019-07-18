@@ -27,9 +27,10 @@ mnist/train/5_12156.pgm -> 5
 ## Objection Detection
 
 ```
-$ python make_data.py --num 2000
+$ python yymnist/make_data.py
+$ python yymnist/show_image.py # [option]
 ```
-you will get 2000 pictures in the folder `./Images` and a `label.txt` in the `Annotations`. As for `label.txt`
+you will defaultly get 1000 pictures in the folder `./yymnist/Images` and a `label.txt` in the `./yymnist/`. As for `label.txt`
 
 ```
 # image_path x_min, y_min, x_max, y_max, class_id  x_min, y_min ,..., class_id 

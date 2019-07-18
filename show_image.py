@@ -16,7 +16,7 @@ import numpy as np
 from PIL import Image
 
 ID = 0
-label_txt = "./Annotations/label.txt"
+label_txt = "./yymnist/labels.txt"
 image_info = open(label_txt).readlines()[ID].split()
 
 image_path = image_info[0]

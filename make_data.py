@@ -19,16 +19,22 @@ import random
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--num", type=int, default=2000)
+parser.add_argument("--images_num", type=int, default=1000)
+parser.add_argument("--image_size", type=int, default=416)
+parser.add_argument("--images_path", type=str, default="./yymnist/Images/")
+parser.add_argument("--labels_txt", type=str, default="./yymnist/labels.txt")
+parser.add_argument("--small", type=int, default=3)
+parser.add_argument("--medium", type=int, default=6)
+parser.add_argument("--big", type=int, default=3)
 flags = parser.parse_args()
 
-if os.path.exists("./Images/"): shutil.rmtree("./Images/")
-if os.path.exists("./Annotations"): shutil.rmtree("./Annotations/")
-os.mkdir("./Images/")
-os.mkdir("./Annotations/")
+SIZE = flags.image_size
 
-image_paths  = [os.path.join(os.path.realpath("."), "./mnist/train/" + image_name) for image_name in os.listdir("./mnist/train")]
-image_paths += [os.path.join(os.path.realpath("."), "./mnist/test/" + image_name) for image_name in os.listdir("./mnist/test")]
+if os.path.exists(flags.images_path): shutil.rmtree(flags.images_path)
+os.mkdir(flags.images_path)
+
+image_paths  = [os.path.join(os.path.realpath("."), "./yymnist/mnist/train/" + image_name) for image_name in os.listdir("./yymnist/mnist/train")]
+image_paths += [os.path.join(os.path.realpath("."), "./yymnist/mnist/test/"  + image_name) for image_name in os.listdir("./yymnist/mnist/test")]
 
 def compute_iou(box1, box2):
     """xmin, ymin, xmax, ymax"""
@@ -57,14 +63,14 @@ def make_image(data, image_path, ratio=1):
     h, w, c = image.shape
 
     while True:
-        xmin = np.random.randint(0, 416-w, 1)[0]
-        ymin = np.random.randint(0, 416-h, 1)[0]
+        xmin = np.random.randint(0, SIZE-w, 1)[0]
+        ymin = np.random.randint(0, SIZE-h, 1)[0]
         xmax = xmin + w
         ymax = ymin + h
         box = [xmin, ymin, xmax, ymax]
 
         iou = [compute_iou(box, b) for b in boxes]
-        if max(iou) < 0.05:
+        if max(iou) < 0.02:
             boxes.append(box)
             label.append(ID)
             break
@@ -78,40 +84,45 @@ def make_image(data, image_path, ratio=1):
     # cv2.rectangle(blank, (xmin, ymin), (xmax, ymax), [0, 0, 255], 2)
     return blank
 
-with open("Annotations/label.txt", "w") as wf:
-    for i in range(flags.num):
-        image_path = os.path.join(os.path.realpath("."), "./Images/%06d.jpg" %i)
+with open(flags.labels_txt, "w") as wf:
+    image_num = 0
+    while image_num < flags.images_num:
+        image_path = os.path.realpath(os.path.join(flags.images_path, "%06d.jpg" %(image_num+1)))
         annotation = image_path
-        blanks = np.ones(shape=[416, 416, 3]) * 255
+        blanks = np.ones(shape=[SIZE, SIZE, 3]) * 255
         bboxes = [[0,0,1,1]]
         labels = [0]
         data = [blanks, bboxes, labels]
+        bboxes_num = 0
 
-        N = random.randint(0,3)
+        # small object
+        ratios = [0.5, 0.8]
+        N = random.randint(0, flags.small)
+        if N !=0: bboxes_num += 1
         for _ in range(N):
+            ratio = random.choice(ratios)
             idx = random.randint(0, 54999)
-            data[0] = make_image(data, image_paths[idx], 4)
+            data[0] = make_image(data, image_paths[idx], ratio)
 
-        N = random.randint(0,3)
+        # medium object
+        ratios = [1., 1.5, 2.]
+        N = random.randint(0, flags.medium)
+        if N !=0: bboxes_num += 1
         for _ in range(N):
+            ratio = random.choice(ratios)
             idx = random.randint(0, 54999)
-            data[0] = make_image(data, image_paths[idx], 3)
+            data[0] = make_image(data, image_paths[idx], ratio)
 
-        N = random.randint(0,5)
+        # big object
+        ratios = [3., 4.]
+        N = random.randint(0, flags.big)
+        if N !=0: bboxes_num += 1
         for _ in range(N):
+            ratio = random.choice(ratios)
             idx = random.randint(0, 54999)
-            data[0] = make_image(data, image_paths[idx], 2)
+            data[0] = make_image(data, image_paths[idx], ratio)
 
-        N = random.randint(5,10)
-        for _ in range(N):
-            idx = random.randint(0, 54999)
-            data[0] = make_image(data, image_paths[idx], 1)
-
-        N = random.randint(0,3)
-        for _ in range(N):
-            idx = random.randint(0, 54999)
-            data[0] = make_image(data, image_paths[idx], 0.5)
-
+        if bboxes_num == 0: continue
         cv2.imwrite(image_path, data[0])
         for i in range(len(labels)):
             if i == 0: continue
@@ -121,6 +132,7 @@ with open("Annotations/label.txt", "w") as wf:
             ymax = str(bboxes[i][3])
             class_ind = str(labels[i])
             annotation += ' ' + ','.join([xmin, ymin, xmax, ymax, str(class_ind)])
+        image_num += 1
         print("=> %s" %annotation)
         wf.write(annotation + "\n")
 
