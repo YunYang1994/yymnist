@@ -1,5 +1,5 @@
 ## Introduction
-A lot of wonderful datasets are now available online, such as COCO or Imagenet. which is challenging the limits of computer vision. But it's not easy for us to do some small experiments with such a large number of images to quickly test the validity of algorithmn. For this reason, I created a small dataset named "yymnist" to do both classification and objection.
+A lot of wonderful datasets are now available online, such as COCO or Imagenet. which is challenging the limits of computer vision. But it's not easy for us to do some small experiments with such a large number of images to quickly test the validity of algorithmn. For this reason, I created a small dataset named "yymnist" to do both classification and object detection.
 
 
 | classification | object detection |
